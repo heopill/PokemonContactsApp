@@ -25,7 +25,12 @@ class ViewController: UIViewController {
         contacts(name: "윤아름", phoneNumber: "010-7890-1234"),
         contacts(name: "장도윤", phoneNumber: "010-8901-2345"),
         contacts(name: "오지현", phoneNumber: "010-9012-3456"),
-        contacts(name: "배성민", phoneNumber: "010-0123-4567")
+        contacts(name: "배성민", phoneNumber: "010-0123-4567"),
+        contacts(name: "서지우", phoneNumber: "010-1111-2222"),
+        contacts(name: "강하늘", phoneNumber: "010-2222-3333"),
+        contacts(name: "조예린", phoneNumber: "010-3333-4444"),
+        contacts(name: "문태윤", phoneNumber: "010-4444-5555"),
+        contacts(name: "김수빈", phoneNumber: "010-5555-6666")
     ]
     
     
@@ -63,6 +68,12 @@ class ViewController: UIViewController {
         configureUI()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        self.navigationController?.navigationBar.isHidden = true
+    }
+
+
     private func configureUI() {
         view.backgroundColor = .white
         
@@ -72,23 +83,27 @@ class ViewController: UIViewController {
         
         titleLabel.snp.makeConstraints { make in
             make.centerX.equalToSuperview()
-            make.top.equalToSuperview().offset(80)
+            make.top.equalTo(self.view.safeAreaLayoutGuide).offset(10)
         }
         
         button.snp.makeConstraints { make in
             make.centerY.equalTo(titleLabel)
             make.trailing.equalToSuperview().inset(20)
+            make.width.equalTo(50)
+            make.height.equalTo(30)
         }
         
         tableView.snp.makeConstraints { make in
             make.leading.trailing.equalToSuperview()
-            make.top.equalTo(titleLabel.snp.bottom).offset(30)
-            make.bottom.equalToSuperview()
+            make.top.equalTo(titleLabel.snp.bottom).offset(20)
+            make.bottom.equalTo(self.view.safeAreaLayoutGuide)
         }
+        
     }
     
-    @objc func buttonTapped() {
-        
+    @objc private func buttonTapped() {
+        print("버튼 클릭")
+        self.navigationController?.pushViewController(ContactsViewController(), animated: true)
     }
 
 }
