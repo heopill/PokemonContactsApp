@@ -46,6 +46,8 @@ class ContactsViewController: UIViewController {
     private func configureUI() {
 
         view.backgroundColor = .white
+        self.title = "연락처 추가"
+        self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "적용", style: .plain, target: self, action: #selector(naviButtonTapped))
         
         circleImageView.layer.cornerRadius = 75
         circleImageView.clipsToBounds = true
@@ -93,5 +95,10 @@ class ContactsViewController: UIViewController {
     
     @objc private func buttonTapped() {
         print("랜덤 이미지 생성 버튼 클릭")
+    }
+    
+    @objc private func naviButtonTapped() {
+        print("네비게이션 버튼 클릭")
+        self.navigationController?.popViewController(animated: true)
     }
 }
