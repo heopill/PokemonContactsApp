@@ -7,6 +7,7 @@
 
 import UIKit
 import CoreData
+import Alamofire
 
 class ContactsViewController: UIViewController {
     
@@ -43,8 +44,50 @@ class ContactsViewController: UIViewController {
         self.navigationController?.navigationBar.isHidden = true
     }
     
+    // Alamofire를 이용해서 데이터 받기
+    private func fetchData<T: Decodable>(url: URL, completion: @escaping (Result<T, AFError>) -> Void) {
+        AF.request(url).responseDecodable(of: T.self) { response in
+            completion(response.result)
+        }
+    }
+    
+    // Alamorife를 이용해서 포켓몬 API 에게 데이터 요청하기
+    private func fetchPokemonData() {
+        let randomNumber = Int.random(in: 1...1000)
+        print(randomNumber)
+        let urlComponents = URLComponents(string: "https://pokeapi.co/api/v2/pokemon/\(randomNumber)")
+        
+        guard let url = urlComponents?.url else {
+            print("잘못된 URL")
+            return
+        }
+        
+        fetchData(url: url) { [weak self] (result: Result<PokemonResult, AFError>) in
+            guard let self else { return }
+            switch result {
+            case .success(let result):
+                print("id: \(result.id), name: \(result.name), weight: \(result.weight), height: \(result.height)")
+                
+                guard let imageUrl = URL(string: result.sprites.front_default) else { return }
+                // 이미지 뷰에 받아온 이미지 넣기
+                AF.request(imageUrl).responseData { response in
+                    if let data = response.data, let image = UIImage(data: data) {
+                        DispatchQueue.main.async {
+                            self.circleImageView.image = image
+                        }
+                    }
+                }
+                
+            case .failure(let error):
+                print("데이터 로드 실패 : \(error)")
+                
+            }
+        }
+        
+    }
+    
     private func configureUI() {
-
+        
         view.backgroundColor = .white
         self.title = "연락처 추가"
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "적용", style: .plain, target: self, action: #selector(naviButtonTapped))
@@ -95,6 +138,7 @@ class ContactsViewController: UIViewController {
     
     @objc private func buttonTapped() {
         print("랜덤 이미지 생성 버튼 클릭")
+        fetchPokemonData()
     }
     
     @objc private func naviButtonTapped() {
