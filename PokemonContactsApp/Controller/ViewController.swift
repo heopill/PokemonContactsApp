@@ -50,7 +50,6 @@ class ViewController: UIViewController {
         button.setTitle("추가", for: .normal)
         button.setTitleColor(.blue, for: .normal)
         button.addTarget(self, action: #selector(buttonTapped), for: .touchDown)
-        
         return button
     }()
     
