@@ -26,7 +26,6 @@ class ContactsTableViewCell: UITableViewCell {
     func configureUI() {
         circleImageView.layer.cornerRadius = 20
         circleImageView.clipsToBounds = true
-//        circleImageView.image = UIImage(systemName: "person.circle.fill")
         circleImageView.contentMode = .scaleAspectFill
         circleImageView.layer.borderColor = UIColor.gray.cgColor
         circleImageView.layer.borderWidth = 1.0
