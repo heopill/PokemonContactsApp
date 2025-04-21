@@ -7,32 +7,13 @@
 
 import UIKit
 import SnapKit
+import CoreData
+import Alamofire
 
 class ViewController: UIViewController {
 
-    struct contacts {
-        var name: String
-        var phoneNumber: String
-    }
-    
-    var testData: [contacts] = [
-        contacts(name: "김민수", phoneNumber: "010-1234-5678"),
-        contacts(name: "이서연", phoneNumber: "010-2345-6789"),
-        contacts(name: "박지훈", phoneNumber: "010-3456-7890"),
-        contacts(name: "최유진", phoneNumber: "010-4567-8901"),
-        contacts(name: "정예린", phoneNumber: "010-5678-9012"),
-        contacts(name: "한지훈", phoneNumber: "010-6789-0123"),
-        contacts(name: "윤아름", phoneNumber: "010-7890-1234"),
-        contacts(name: "장도윤", phoneNumber: "010-8901-2345"),
-        contacts(name: "오지현", phoneNumber: "010-9012-3456"),
-        contacts(name: "배성민", phoneNumber: "010-0123-4567"),
-        contacts(name: "서지우", phoneNumber: "010-1111-2222"),
-        contacts(name: "강하늘", phoneNumber: "010-2222-3333"),
-        contacts(name: "조예린", phoneNumber: "010-3333-4444"),
-        contacts(name: "문태윤", phoneNumber: "010-4444-5555"),
-        contacts(name: "김수빈", phoneNumber: "010-5555-6666")
-    ]
-    
+    var container: NSPersistentContainer!
+    var contactsTableData: [ContactsModel] = []
     
     // 타이틀 라벨
     private let titleLabel: UILabel = {
@@ -70,6 +51,60 @@ class ViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         self.navigationController?.navigationBar.isHidden = true
+        
+        // CoreData
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        self.container = appDelegate.persistentContainer
+        
+        readAllData()
+    }
+    
+    // 저장된 데이터 읽어오기
+    private func readAllData() {
+        contactsTableData = []
+        do {
+            let contactsData = try self.container.viewContext.fetch(Contacts.fetchRequest())
+            
+            for data in contactsData as [NSManagedObject] {
+                if let name = data.value(forKey: Contacts.Key.name) as? String,
+                   let phoneNumber = data.value(forKey: Contacts.Key.phoneNumber) as? String,
+                   let imageUrl = data.value(forKey: Contacts.Key.imageUrl) as? String{
+                    print("name: \(name), phoneNumber: \(phoneNumber), imageUrl: \(imageUrl)")
+                    contactsTableData.append(ContactsModel(name: name, phoneNumber: phoneNumber, imageUrl: imageUrl))
+                }
+            }
+        } catch {
+            print("데이터 읽기 실패")
+        }
+        tableView.reloadData()
+    }
+    
+    // 저장된 데이터 선택 삭제
+    func deleteData(name: String) {
+        // 삭제할 데이터를 찾기 위한 fetch request 생성
+        let fetchRequest = Contacts.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "name == %@", name)
+        
+        do {
+            // fetch request 실행
+            let result = try self.container.viewContext.fetch(fetchRequest)
+            
+            // 결과 처리
+            for data in result as [NSManagedObject] {
+                // 삭제
+                // CRUD 의 D.
+                self.container.viewContext.delete(data)
+                print("삭제된 데이터: \(data)")
+            }
+            
+            // 변경 사항 저장
+            try self.container.viewContext.save()
+            print("데이터 삭제 완료")
+            
+        } catch {
+            print("데이터 삭제 실패: \(error)")
+        }
+        tableView.reloadData()
     }
 
 
@@ -110,21 +145,31 @@ class ViewController: UIViewController {
 extension ViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 70
-      
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        testData.count
+        return contactsTableData.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: ContactsTableViewCell.identifier, for: indexPath) as? ContactsTableViewCell else { return UITableViewCell() }
+        
         cell.configureUI()
-        let contact = testData[indexPath.row]
+        
+        let contact = contactsTableData[indexPath.row]
+        
         cell.nameLabel.text = contact.name
         cell.phoneNumberLabel.text = contact.phoneNumber
+        
+        AF.request(contact.imageUrl).responseData { response in
+            if let data = response.data, let image = UIImage(data: data) {
+                DispatchQueue.main.async {
+                    cell.circleImageView.image = image
+                }
+            }
+        }
+        
         return cell
     }
-    
-    
 }
+

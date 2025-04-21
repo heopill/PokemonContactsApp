@@ -12,24 +12,30 @@ import Alamofire
 class ContactsViewController: UIViewController {
     
     private let circleImageView = UIImageView()
+    var container: NSPersistentContainer!
+    var imageUrl = ""
     
     private lazy var button: UIButton = {
         let button = UIButton()
         button.setTitle("랜덤 이미지 생성", for: .normal)
-        button.setTitleColor(.gray, for: .normal)
+        button.setTitleColor(.blue, for: .normal)
         button.addTarget(self, action: #selector(buttonTapped), for: .touchDown)
         return button
     }()
     
     private let nameTextField: UITextField = {
         let textField = UITextField()
-        
+        textField.placeholder = "이름"
+        textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 0))
+        textField.leftViewMode = .always
         return textField
     }()
     
     private let phoneNumberTextField: UITextField = {
         let textField = UITextField()
-        
+        textField.placeholder = "전화번호"
+        textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 0))
+        textField.leftViewMode = .always
         return textField
     }()
     
@@ -37,11 +43,32 @@ class ContactsViewController: UIViewController {
         super.viewDidLoad()
         self.navigationController?.navigationBar.isHidden = false
         configureUI()
+        
+        // CoreData
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        self.container = appDelegate.persistentContainer
+        
     }
     
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         self.navigationController?.navigationBar.isHidden = true
+    }
+    
+    // CoreData 데이터 저장하기
+    func createData(name: String, phoneNumber: String, imageUrl: String) {
+        guard let entity = NSEntityDescription.entity(forEntityName: Contacts.className, in: self.container.viewContext) else { return }
+        let newContacts = NSManagedObject(entity: entity, insertInto: self.container.viewContext)
+        newContacts.setValue(name, forKey: Contacts.Key.name)
+        newContacts.setValue(phoneNumber, forKey: Contacts.Key.phoneNumber)
+        newContacts.setValue(imageUrl, forKey: Contacts.Key.imageUrl)
+        
+        do {
+            try self.container.viewContext.save()
+            print("문맥 저장 성공")
+        } catch {
+            print("문맥 저장 실패")
+        }
     }
     
     // Alamofire를 이용해서 데이터 받기
@@ -55,9 +82,7 @@ class ContactsViewController: UIViewController {
     private func fetchPokemonData() {
         let randomNumber = Int.random(in: 1...1000)
         print(randomNumber)
-        let urlComponents = URLComponents(string: "https://pokeapi.co/api/v2/pokemon/\(randomNumber)")
-        
-        guard let url = urlComponents?.url else {
+        guard let url = URL(string: "https://pokeapi.co/api/v2/pokemon/\(randomNumber)") else {
             print("잘못된 URL")
             return
         }
@@ -69,6 +94,9 @@ class ContactsViewController: UIViewController {
                 print("id: \(result.id), name: \(result.name), weight: \(result.weight), height: \(result.height)")
                 
                 guard let imageUrl = URL(string: result.sprites.front_default) else { return }
+                
+                self.imageUrl = result.sprites.front_default
+                
                 // 이미지 뷰에 받아온 이미지 넣기
                 AF.request(imageUrl).responseData { response in
                     if let data = response.data, let image = UIImage(data: data) {
@@ -77,10 +105,8 @@ class ContactsViewController: UIViewController {
                         }
                     }
                 }
-                
             case .failure(let error):
                 print("데이터 로드 실패 : \(error)")
-                
             }
         }
         
@@ -143,6 +169,8 @@ class ContactsViewController: UIViewController {
     
     @objc private func naviButtonTapped() {
         print("네비게이션 버튼 클릭")
+        createData(name: nameTextField.text ?? "", phoneNumber: phoneNumberTextField.text ?? "", imageUrl: "\(self.imageUrl)")
         self.navigationController?.popViewController(animated: true)
+        
     }
 }
