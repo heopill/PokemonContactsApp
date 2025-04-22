@@ -6,3 +6,9 @@
 //
 
 import Foundation
+
+struct ContactsModel {
+    var name: String
+    var phoneNumber: String
+    var imageUrl: String
+}
