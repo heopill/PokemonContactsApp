@@ -30,11 +30,8 @@ class ContactsTableViewCell: UITableViewCell {
         circleImageView.layer.borderColor = UIColor.gray.cgColor
         circleImageView.layer.borderWidth = 1.0
         
-        nameLabel.text = "Hello"
         nameLabel.textColor = .black
-        
-        phoneNumberLabel.text = "010-1234-1234"
-        nameLabel.textColor = .black
+        phoneNumberLabel.textColor = .black
         
         [circleImageView ,nameLabel, phoneNumberLabel].forEach {
             contentView.addSubview($0)
