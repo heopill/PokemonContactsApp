@@ -14,6 +14,7 @@ class ViewController: UIViewController {
 
     var container: NSPersistentContainer!
     var contactsTableData: [ContactsModel] = []
+    lazy var sortedContactsTableData = contactsTableData.sorted { $0.name < $1.name }
     
     // 타이틀 라벨
     private let titleLabel: UILabel = {
@@ -148,7 +149,7 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return contactsTableData.count
+        return sortedContactsTableData.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -156,7 +157,7 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
         
         cell.configureUI()
         
-        let contact = contactsTableData[indexPath.row]
+        let contact = sortedContactsTableData[indexPath.row]
         
         cell.nameLabel.text = contact.name
         cell.phoneNumberLabel.text = contact.phoneNumber
