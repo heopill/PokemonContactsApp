@@ -14,6 +14,8 @@ class ContactsViewController: UIViewController {
     private let circleImageView = UIImageView()
     var container: NSPersistentContainer!
     var imageUrl = ""
+    var isModify = false // 수정 여부 확인
+    var modifyContact: ContactsModel? // ViewController 에서 데이터 전달
     
     private lazy var button: UIButton = {
         let button = UIButton()
@@ -115,8 +117,31 @@ class ContactsViewController: UIViewController {
     private func configureUI() {
         
         view.backgroundColor = .white
-        self.title = "연락처 추가"
-        self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "적용", style: .plain, target: self, action: #selector(naviButtonTapped))
+        
+        if isModify == false {
+            self.title = "연락처 추가"
+            self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "등록", style: .plain, target: self, action: #selector(naviButtonTapped))
+            
+        } else {
+            self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "수정", style: .plain, target: self, action: #selector(naviButtonTapped))
+            
+            // 옵셔널 값 처리
+            guard let modifyContact = modifyContact else { return }
+            
+            self.title = modifyContact.name
+            nameTextField.text = modifyContact.name
+            phoneNumberTextField.text = modifyContact.phoneNumber
+            
+            AF.request(modifyContact.imageUrl).responseData { response in
+                if let data = response.data, let image = UIImage(data: data) {
+                    DispatchQueue.main.async {
+                        self.circleImageView.image = image
+                    }
+                }
+            }
+            
+        }
+        
         
         circleImageView.layer.cornerRadius = 75
         circleImageView.clipsToBounds = true
