@@ -162,7 +162,6 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
         
         // 정보를 넘겨주기 프로퍼티로 정보를 가지고 있어야 한다.
         // 옵셔널로 가지고 있어야 한다. 수정이 될수도 있기 때문에 ex) 값이 있으면 수정, 없으면 추가
-        
         let contact = contactsTableData[indexPath.row]
         modifyVC.modifyContact = contact
 

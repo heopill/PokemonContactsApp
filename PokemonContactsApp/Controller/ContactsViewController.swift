@@ -174,7 +174,6 @@ class ContactsViewController: UIViewController {
                 print("데이터 로드 실패 : \(error)")
             }
         }
-        
     }
     
     private func configureUI() {
@@ -184,7 +183,7 @@ class ContactsViewController: UIViewController {
         if isModify == false {
             self.title = "연락처 추가"
             self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "등록", style: .plain, target: self, action: #selector(naviButtonTapped))
-            deleteButton.isHidden = true
+            deleteButton.isHidden = true // 삭제 버튼을 안보이게 처리
             
         } else {
             self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "수정", style: .plain, target: self, action: #selector(modifyButtonTapped))
@@ -204,10 +203,8 @@ class ContactsViewController: UIViewController {
                 }
             }
             
-            deleteButton.isHidden = false
-            
+            deleteButton.isHidden = false // 삭제 버튼을 보이게 처리
         }
-        
         
         circleImageView.layer.cornerRadius = 75
         circleImageView.clipsToBounds = true
@@ -254,7 +251,6 @@ class ContactsViewController: UIViewController {
             make.trailing.equalToSuperview().inset(20)
             make.top.equalTo(phoneNumberTextField.snp.bottom).offset(10)
         }
-        
         
     }
     
