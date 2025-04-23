@@ -20,7 +20,7 @@ class ContactsViewController: UIViewController {
     private lazy var button: UIButton = {
         let button = UIButton()
         button.setTitle("랜덤 이미지 생성", for: .normal)
-        button.setTitleColor(.blue, for: .normal)
+        button.setTitleColor(.gray, for: .normal)
         button.addTarget(self, action: #selector(buttonTapped), for: .touchDown)
         return button
     }()
@@ -39,6 +39,15 @@ class ContactsViewController: UIViewController {
         textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 0))
         textField.leftViewMode = .always
         return textField
+    }()
+    
+    private lazy var deleteButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("연락처 삭제하기", for: .normal)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 15)
+        button.setTitleColor(.red, for: .normal)
+        button.addTarget(self, action: #selector(deleteButtonTapped), for: .touchDown)
+        return button
     }()
     
     override func viewDidLoad() {
@@ -67,9 +76,9 @@ class ContactsViewController: UIViewController {
         
         do {
             try self.container.viewContext.save()
-            print("문맥 저장 성공")
+            print("연락처 저장 성공")
         } catch {
-            print("문맥 저장 실패")
+            print("연락처 저장 실패")
         }
     }
     
@@ -98,6 +107,33 @@ class ContactsViewController: UIViewController {
             
         } catch {
             print("데이터 수정 실패")
+        }
+    }
+    
+    // 저장된 데이터 선택 삭제
+    func deleteData(name: String) {
+        // 삭제할 데이터를 찾기 위한 fetch request 생성
+        let fetchRequest = Contacts.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "name == %@", name)
+        
+        do {
+            // fetch request 실행
+            let result = try self.container.viewContext.fetch(fetchRequest)
+            
+            // 결과 처리
+            for data in result as [NSManagedObject] {
+                // 삭제
+                // CRUD 의 D.
+                self.container.viewContext.delete(data)
+                print("삭제된 데이터: \(data)")
+            }
+            
+            // 변경 사항 저장
+            try self.container.viewContext.save()
+            print("데이터 삭제 완료")
+            
+        } catch {
+            print("데이터 삭제 실패: \(error)")
         }
     }
     
@@ -148,6 +184,7 @@ class ContactsViewController: UIViewController {
         if isModify == false {
             self.title = "연락처 추가"
             self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "등록", style: .plain, target: self, action: #selector(naviButtonTapped))
+            deleteButton.isHidden = true
             
         } else {
             self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "수정", style: .plain, target: self, action: #selector(modifyButtonTapped))
@@ -167,6 +204,8 @@ class ContactsViewController: UIViewController {
                 }
             }
             
+            deleteButton.isHidden = false
+            
         }
         
         
@@ -184,7 +223,7 @@ class ContactsViewController: UIViewController {
         phoneNumberTextField.layer.borderWidth = 1.0
         phoneNumberTextField.layer.cornerRadius = 3
         
-        [circleImageView, button, nameTextField, phoneNumberTextField].forEach {
+        [circleImageView, button, nameTextField, phoneNumberTextField, deleteButton].forEach {
             view.addSubview($0)
         }
         
@@ -211,6 +250,11 @@ class ContactsViewController: UIViewController {
             make.height.equalTo(40)
         }
         
+        deleteButton.snp.makeConstraints { make in
+            make.trailing.equalToSuperview().inset(20)
+            make.top.equalTo(phoneNumberTextField.snp.bottom).offset(10)
+        }
+        
         
     }
     
@@ -231,6 +275,15 @@ class ContactsViewController: UIViewController {
         guard let modifyContact = modifyContact else { return }
         
         updateData(currentName: modifyContact.name, updateName: nameTextField.text ?? modifyContact.name, currentPhoneNumber: modifyContact.phoneNumber, updatePhoneNumber: phoneNumberTextField.text ?? modifyContact.phoneNumber, currentImgaeUrl: modifyContact.imageUrl, updateImageUrl: self.imageUrl.isEmpty ? modifyContact.imageUrl : self.imageUrl)
+        
+        self.navigationController?.popViewController(animated: true)
+    }
+    
+    @objc private func deleteButtonTapped() {
+        print("삭제 버튼 클릭")
+        guard let modifyContact = modifyContact else { return }
+        
+        deleteData(name: modifyContact.name)
         
         self.navigationController?.popViewController(animated: true)
     }
