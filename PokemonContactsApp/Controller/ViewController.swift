@@ -78,7 +78,6 @@ class ViewController: UIViewController {
                 if let name = data.value(forKey: Contacts.Key.name) as? String,
                    let phoneNumber = data.value(forKey: Contacts.Key.phoneNumber) as? String,
                    let imageUrl = data.value(forKey: Contacts.Key.imageUrl) as? String{
-                    print("name: \(name), phoneNumber: \(phoneNumber), imageUrl: \(imageUrl)")
                     contactsTableData.append(ContactsModel(name: name, phoneNumber: phoneNumber, imageUrl: imageUrl))
                 }
             }
@@ -88,35 +87,6 @@ class ViewController: UIViewController {
             print("데이터 읽기 실패")
         }
     }
-    
-    // 저장된 데이터 선택 삭제
-    func deleteData(name: String) {
-        // 삭제할 데이터를 찾기 위한 fetch request 생성
-        let fetchRequest = Contacts.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "name == %@", name)
-        
-        do {
-            // fetch request 실행
-            let result = try self.container.viewContext.fetch(fetchRequest)
-            
-            // 결과 처리
-            for data in result as [NSManagedObject] {
-                // 삭제
-                // CRUD 의 D.
-                self.container.viewContext.delete(data)
-                print("삭제된 데이터: \(data)")
-            }
-            
-            // 변경 사항 저장
-            try self.container.viewContext.save()
-            print("데이터 삭제 완료")
-            sortData()
-            
-        } catch {
-            print("데이터 삭제 실패: \(error)")
-        }
-    }
-
 
     private func configureUI() {
         view.backgroundColor = .white
