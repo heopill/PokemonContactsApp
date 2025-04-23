@@ -14,7 +14,6 @@ class ViewController: UIViewController {
 
     var container: NSPersistentContainer!
     var contactsTableData: [ContactsModel] = []
-    lazy var sortedContactsTableData = contactsTableData.sorted { $0.name < $1.name }
     
     // 타이틀 라벨
     private let titleLabel: UILabel = {
@@ -58,6 +57,15 @@ class ViewController: UIViewController {
         self.container = appDelegate.persistentContainer
         
         readAllData()
+        
+        DispatchQueue.main.async {
+            self.tableView.reloadData()
+        }
+    }
+    
+    private func sortData() {
+        let sortedContactsTableData = contactsTableData.sorted { $0.name < $1.name }
+        contactsTableData = sortedContactsTableData
     }
     
     // 저장된 데이터 읽어오기
@@ -74,10 +82,11 @@ class ViewController: UIViewController {
                     contactsTableData.append(ContactsModel(name: name, phoneNumber: phoneNumber, imageUrl: imageUrl))
                 }
             }
+            
+            sortData()
         } catch {
             print("데이터 읽기 실패")
         }
-        tableView.reloadData()
     }
     
     // 저장된 데이터 선택 삭제
@@ -101,11 +110,11 @@ class ViewController: UIViewController {
             // 변경 사항 저장
             try self.container.viewContext.save()
             print("데이터 삭제 완료")
+            sortData()
             
         } catch {
             print("데이터 삭제 실패: \(error)")
         }
-        tableView.reloadData()
     }
 
 
@@ -144,20 +153,23 @@ class ViewController: UIViewController {
 }
 
 extension ViewController: UITableViewDelegate, UITableViewDataSource {
+    // 테이블 뷰의 높이 설정
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 70
     }
     
+    // 테이블 뷰에 표시할 행의 수
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return sortedContactsTableData.count
+        return contactsTableData.count
     }
     
+    // 테이블 뷰 셀 부분
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: ContactsTableViewCell.identifier, for: indexPath) as? ContactsTableViewCell else { return UITableViewCell() }
         
         cell.configureUI()
         
-        let contact = sortedContactsTableData[indexPath.row]
+        let contact = contactsTableData[indexPath.row]
         
         cell.nameLabel.text = contact.name
         cell.phoneNumberLabel.text = contact.phoneNumber
@@ -172,5 +184,20 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
         
         return cell
     }
+    
+    // 테이블 뷰 클릭 시 이벤트 처리
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let modifyVC = ContactsViewController()
+        modifyVC.isModify = true // 수정이면 isModify의 값을 true로 변경
+        
+        // 정보를 넘겨주기 프로퍼티로 정보를 가지고 있어야 한다.
+        // 옵셔널로 가지고 있어야 한다. 수정이 될수도 있기 때문에 ex) 값이 있으면 수정, 없으면 추가
+        
+        let contact = contactsTableData[indexPath.row]
+        modifyVC.modifyContact = contact
+
+        navigationController?.pushViewController(modifyVC, animated: true)
+    }
+    
 }
 
