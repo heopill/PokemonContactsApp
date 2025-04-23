@@ -73,6 +73,34 @@ class ContactsViewController: UIViewController {
         }
     }
     
+    // CoreData 데이터 수정하기
+    func updateData(currentName: String, updateName: String, currentPhoneNumber: String, updatePhoneNumber: String, currentImgaeUrl: String, updateImageUrl: String) {
+
+        // 수정할 데이터를 찾기 위한 fetch request 생성
+        let fetchRequest = Contacts.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "name == %@", currentName) // 예시: 이름이 "Adam"인 데이터 수정
+        
+        do {
+            // fetch request 실행
+            let result = try self.container.viewContext.fetch(fetchRequest)
+            
+            // 결과 처리
+            for data in result as [NSManagedObject] {
+                // 데이터 수정
+                data.setValue(updateName, forKey: Contacts.Key.name)
+                data.setValue(updatePhoneNumber, forKey: Contacts.Key.phoneNumber)
+                data.setValue(updateImageUrl, forKey: Contacts.Key.imageUrl)
+                
+                // 변경 사항 저장
+                try self.container.viewContext.save()
+                print("데이터 수정 완료")
+            }
+            
+        } catch {
+            print("데이터 수정 실패")
+        }
+    }
+    
     // Alamofire를 이용해서 데이터 받기
     private func fetchData<T: Decodable>(url: URL, completion: @escaping (Result<T, AFError>) -> Void) {
         AF.request(url).responseDecodable(of: T.self) { response in
@@ -83,7 +111,6 @@ class ContactsViewController: UIViewController {
     // Alamorife를 이용해서 포켓몬 API 에게 데이터 요청하기
     private func fetchPokemonData() {
         let randomNumber = Int.random(in: 1...1000)
-        print(randomNumber)
         guard let url = URL(string: "https://pokeapi.co/api/v2/pokemon/\(randomNumber)") else {
             print("잘못된 URL")
             return
@@ -93,7 +120,7 @@ class ContactsViewController: UIViewController {
             guard let self else { return }
             switch result {
             case .success(let result):
-                print("id: \(result.id), name: \(result.name), weight: \(result.weight), height: \(result.height)")
+//                print("id: \(result.id), name: \(result.name), weight: \(result.weight), height: \(result.height)")
                 
                 guard let imageUrl = URL(string: result.sprites.front_default) else { return }
                 
@@ -123,7 +150,7 @@ class ContactsViewController: UIViewController {
             self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "등록", style: .plain, target: self, action: #selector(naviButtonTapped))
             
         } else {
-            self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "수정", style: .plain, target: self, action: #selector(naviButtonTapped))
+            self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "수정", style: .plain, target: self, action: #selector(modifyButtonTapped))
             
             // 옵셔널 값 처리
             guard let modifyContact = modifyContact else { return }
@@ -193,9 +220,18 @@ class ContactsViewController: UIViewController {
     }
     
     @objc private func naviButtonTapped() {
-        print("네비게이션 버튼 클릭")
+        print("등록 버튼 클릭")
         createData(name: nameTextField.text ?? "", phoneNumber: phoneNumberTextField.text ?? "", imageUrl: "\(self.imageUrl)")
         self.navigationController?.popViewController(animated: true)
         
+    }
+    
+    @objc private func modifyButtonTapped() {
+        print("수정 버튼 클릭")
+        guard let modifyContact = modifyContact else { return }
+        
+        updateData(currentName: modifyContact.name, updateName: nameTextField.text ?? modifyContact.name, currentPhoneNumber: modifyContact.phoneNumber, updatePhoneNumber: phoneNumberTextField.text ?? modifyContact.phoneNumber, currentImgaeUrl: modifyContact.imageUrl, updateImageUrl: self.imageUrl.isEmpty ? modifyContact.imageUrl : self.imageUrl)
+        
+        self.navigationController?.popViewController(animated: true)
     }
 }
