@@ -209,6 +209,7 @@ class ContactsViewController: UIViewController {
         circleImageView.layer.cornerRadius = 75
         circleImageView.clipsToBounds = true
         circleImageView.contentMode = .scaleAspectFill
+        circleImageView.layer.masksToBounds = true // 테두리 밖으로 나가지 않게 조절
         circleImageView.layer.borderColor = UIColor.gray.cgColor
         circleImageView.layer.borderWidth = 2.0
         
